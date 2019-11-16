@@ -114,14 +114,11 @@ class _MyAppState extends State<MyApp> {
         : Container(
             alignment: Alignment.bottomCenter,
             padding: EdgeInsets.only(bottom: 7),
-            child: ButtonTheme(
-              minWidth: 190,
-              height: 50,
-              child: RaisedButton(
-                onPressed: _getImage,
-                child: Icon(Icons.add_a_photo),
-                color: Colors.deepPurpleAccent,
-              ),
+            child: FloatingActionButton(
+              onPressed: _getImage,
+              child: Icon(Icons.add_a_photo),
+              backgroundColor: Colors.deepPurpleAccent,
+              isExtended: true,
             ),
           );
     return MaterialApp(
