@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:convert';
 
 void main() => runApp(MyApp());
 
@@ -14,11 +16,27 @@ class _MyAppState extends State<MyApp> {
   File _image;
   bool _masked = false;
 
+  void _saveImage() async {
+    final dir = await getApplicationDocumentsDirectory();
+    final bytes = _image.readAsBytesSync();
+    File file = File('${dir}/photo1.jpg');
+    file.writeAsBytes(bytes);
+    print('保存しますた');
+  }
+
+  void _sendImage() {
+    final bytes = _image.readAsBytesSync();
+    String imageBase64 = base64Encode(bytes);
+    print(imageBase64);
+  }
+
   Future _getImage() async {
     var image = await ImagePicker.pickImage(source: ImageSource.camera);
 
     setState(() {
       _image = image;
+      _masked = true;
+      _sendImage();
     });
   }
 
@@ -52,7 +70,7 @@ class _MyAppState extends State<MyApp> {
                     flex: 2,
                     child: Center(
                       child: RaisedButton(
-                        onPressed: _getImage,
+                        onPressed: _saveImage,
                         child: Icon(Icons.save_alt),
                       ),
                     ),
