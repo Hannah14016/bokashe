@@ -144,7 +144,7 @@ class _MyAppState extends State<MyApp> {
       home: Scaffold(
         backgroundColor: Color.fromRGBO(50, 50, 70, 1),
         appBar: AppBar(
-          backgroundColor: Theme.of(context).primaryColor,
+          backgroundColor: Color.fromRGBO(46, 49, 146, 1),
           title: Text('bokashe'),
         ),
         body: SafeArea(
