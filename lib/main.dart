@@ -18,6 +18,9 @@ class _MyAppState extends State<MyApp> {
   File _maskedImage;
   bool _masked = false;
   final String _baseUrl = 'https://secure-shore-17992.herokuapp.com/';
+  String imageBase64; //base64Encode(bytes);
+  String fileName; //_image.path.split('/').last;
+  Directory _dir; // await getApplicationDocumentsDirectory();
 
   void _saveImage() async {
     final dir = await getApplicationDocumentsDirectory();
@@ -29,9 +32,6 @@ class _MyAppState extends State<MyApp> {
 
   Future<http.Response> _sendImage() {
     if (_image == null) return null;
-    final bytes = _image.readAsBytesSync();
-    String imageBase64 = base64Encode(bytes);
-    String fileName = _image.path.split('/').last;
     return http.post(
       _baseUrl,
       body: {
@@ -65,23 +65,65 @@ class _MyAppState extends State<MyApp> {
 
   Future _getImage() async {
     var image = await ImagePicker.pickImage(source: ImageSource.camera);
+    _dir = await getApplicationDocumentsDirectory();
 
     setState(() {
       _image = image;
+      final bytes = _image.readAsBytesSync();
+      imageBase64 = base64Encode(bytes);
+      fileName = _image.path.split('/').last;
       _masked = true;
-      handleSendImageRequest(); //TODO: UNCOMMENT!!
+      // handleSendImageRequest(); //TODO: UNCOMMENT!!
     });
   }
 
   @override
   Widget build(BuildContext context) {
     Widget imageWidget = _image != null
-        ? Center(
-            child: Image.file(
-              (_maskedImage == null) ? _image : _maskedImage,
-              fit: BoxFit.fitWidth,
+        ? FutureBuilder<http.Response>(
+            future: http.post(
+              _baseUrl,
+              body: {
+                "image": imageBase64,
+                "name": fileName,
+              },
             ),
+            builder:
+                (BuildContext context, AsyncSnapshot<http.Response> snapshot) {
+              switch (snapshot.connectionState) {
+                case ConnectionState.done:
+                  final decodedResponse = json.decode(snapshot.data.body);
+
+                  final bytes = base64Decode(decodedResponse['image']);
+                  File file = File(
+                      '${_dir.path}/${decodedResponse['name'].split('.')[0]}_masked.jpg');
+                  file.writeAsBytesSync(bytes);
+                  print(file.path);
+                  // setState(() {
+                  //   _maskedImage = file;
+                  // });
+                  return Center(
+                    child: Image.file(
+                      file,
+                      fit: BoxFit.fitWidth,
+                    ),
+                  );
+                default:
+                  return Center(
+                    child: CircularProgressIndicator(
+                      valueColor:
+                          new AlwaysStoppedAnimation<Color>(Colors.blue),
+                    ),
+                  );
+              }
+            },
           )
+        // ? Center(
+        //     child: Image.file(
+        //       (_maskedImage == null) ? _image : _maskedImage,
+        //       fit: BoxFit.fitWidth,
+        //     ),
+        //   )
         : Center(
             child: Center(
               child: Text(
