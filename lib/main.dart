@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -5,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:connectivity/connectivity.dart';
 
 void main() => runApp(MyApp());
 
@@ -20,6 +22,28 @@ class _MyAppState extends State<MyApp> {
   String imageBase64;
   String fileName;
   Directory _dir;
+  StreamSubscription<ConnectivityResult> _subscription;
+  bool _connected2internet = false;
+
+  @override
+  initState() {
+    super.initState();
+
+    _subscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+      setState(() {
+        _connected2internet = result != ConnectivityResult.none;
+      });
+      print('connectivity');
+      print(result);
+    });
+  }
+
+  @override
+  dispose() {
+    super.dispose();
+
+    _subscription.cancel();
+  }
 
   Future _getImage() async {
     var image = await ImagePicker.pickImage(source: ImageSource.camera);
@@ -49,8 +73,6 @@ class _MyAppState extends State<MyApp> {
                 (BuildContext context, AsyncSnapshot<http.Response> snapshot) {
               switch (snapshot.connectionState) {
                 case ConnectionState.done:
-                  print('==========data=======');
-                  print(snapshot.data);
                   final decodedResponse = json.decode(snapshot.data.body);
 
                   final bytes = base64Decode(decodedResponse['image']);
@@ -77,7 +99,7 @@ class _MyAppState extends State<MyApp> {
         : Center(
             child: Center(
               child: Text(
-                'Let\'s take a picture!!!!',
+                _connected2internet ? 'Let\'s take a picture!' : 'Seems like you\'re offline. Please connect to the internet.',
                 style: TextStyle(fontSize: 50),
                 textAlign: TextAlign.center,
               ),
@@ -106,9 +128,9 @@ class _MyAppState extends State<MyApp> {
             alignment: Alignment.bottomCenter,
             padding: EdgeInsets.only(bottom: 7),
             child: FloatingActionButton(
-              onPressed: _getImage,
+              onPressed: _connected2internet ? _getImage : null,
               child: Icon(Icons.add_a_photo),
-              backgroundColor: Colors.deepPurpleAccent,
+              backgroundColor: _connected2internet ? Colors.deepPurpleAccent : Colors.blueGrey,
               isExtended: true,
             ),
           );
