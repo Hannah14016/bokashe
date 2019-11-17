@@ -17,7 +17,7 @@ class _MyAppState extends State<MyApp> {
   File _image;
   File _maskedImage;
   bool _masked = false;
-  final String _baseUrl = '192.168.101.19:3000'; //TODO: change it later
+  final String _baseUrl = 'https://secure-shore-17992.herokuapp.com/';
 
   void _saveImage() async {
     final dir = await getApplicationDocumentsDirectory();
@@ -33,7 +33,7 @@ class _MyAppState extends State<MyApp> {
     String imageBase64 = base64Encode(bytes);
     String fileName = _image.path.split('/').last;
     return http.post(
-      'http://' + _baseUrl,
+      _baseUrl,
       body: {
         "image": imageBase64,
         "name": fileName,
@@ -69,7 +69,7 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       _image = image;
       _masked = true;
-      // handleSendImageRequest(); //TODO: UNCOMMENT!!
+      handleSendImageRequest(); //TODO: UNCOMMENT!!
     });
   }
 
@@ -85,7 +85,7 @@ class _MyAppState extends State<MyApp> {
         : Center(
             child: Center(
               child: Text(
-                'Let\'s take a picture!',
+                'Let\'s take a picture!!!!',
                 style: TextStyle(fontSize: 50),
                 textAlign: TextAlign.center,
               ),
@@ -135,11 +135,14 @@ class _MyAppState extends State<MyApp> {
           backgroundColor: Theme.of(context).primaryColor,
           title: Text('bokashe'),
         ),
-        body: Stack(
-          children: <Widget>[
-            imageWidget,
-            buttonWidget,
-          ],
+        body: SafeArea(
+          bottom: true,
+          child: Stack(
+            children: <Widget>[
+              imageWidget,
+              buttonWidget,
+            ],
+          ),
         ),
       ),
     );
