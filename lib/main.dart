@@ -15,11 +15,53 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   File _image;
+  File _maskedImage;
   bool _masked = false;
   final String _baseUrl = 'https://secure-shore-17992.herokuapp.com/';
-  String imageBase64;
-  String fileName;
-  Directory _dir;
+  String imageBase64; //base64Encode(bytes);
+  String fileName; //_image.path.split('/').last;
+  Directory _dir; // await getApplicationDocumentsDirectory();
+
+  void _saveImage() async {
+    final dir = await getApplicationDocumentsDirectory();
+    final bytes = _image.readAsBytesSync();
+    File file = File('${dir}/photo1.jpg');
+    file.writeAsBytes(bytes);
+    print('保存しますた');
+  }
+
+  Future<http.Response> _sendImage() {
+    if (_image == null) return null;
+    return http.post(
+      _baseUrl,
+      body: {
+        "image": imageBase64,
+        "name": fileName,
+      },
+    );
+  }
+
+  void handleSendImageRequest() async {
+    print('request handled');
+
+    final response = await _sendImage();
+    if (response.statusCode != 200) {
+      print('${response.statusCode} sounds strange..');
+      return;
+    }
+
+    final decodedResponse = json.decode(response.body);
+
+    final bytes = base64Decode(decodedResponse['image']);
+    final dir = await getApplicationDocumentsDirectory();
+    File file =
+        File('${dir.path}/${decodedResponse['name'].split('.')[0]}_masked.jpg');
+    file.writeAsBytesSync(bytes);
+    print(file.path);
+    setState(() {
+      _maskedImage = file;
+    });
+  }
 
   Future _getImage() async {
     var image = await ImagePicker.pickImage(source: ImageSource.camera);
@@ -31,6 +73,7 @@ class _MyAppState extends State<MyApp> {
       imageBase64 = base64Encode(bytes);
       fileName = _image.path.split('/').last;
       _masked = true;
+      // handleSendImageRequest(); //TODO: UNCOMMENT!!
     });
   }
 
@@ -49,8 +92,8 @@ class _MyAppState extends State<MyApp> {
                 (BuildContext context, AsyncSnapshot<http.Response> snapshot) {
               switch (snapshot.connectionState) {
                 case ConnectionState.done:
-                  print('==========data=======');
-                  print(snapshot.data);
+                print('====================');
+                  print(snapshot.data.body);
                   final decodedResponse = json.decode(snapshot.data.body);
 
                   final bytes = base64Decode(decodedResponse['image']);
@@ -58,6 +101,9 @@ class _MyAppState extends State<MyApp> {
                       '${_dir.path}/${decodedResponse['name'].split('.')[0]}_masked.jpg');
                   file.writeAsBytesSync(bytes);
                   print(file.path);
+                  // setState(() {
+                  //   _maskedImage = file;
+                  // });
                   return Center(
                     child: Image.file(
                       file,
@@ -74,6 +120,12 @@ class _MyAppState extends State<MyApp> {
               }
             },
           )
+        // ? Center(
+        //     child: Image.file(
+        //       (_maskedImage == null) ? _image : _maskedImage,
+        //       fit: BoxFit.fitWidth,
+        //     ),
+        //   )
         : Center(
             child: Center(
               child: Text(
@@ -94,6 +146,7 @@ class _MyAppState extends State<MyApp> {
                 onPressed: () {
                   setState(() {
                     _image = null;
+                    _maskedImage = null;
                     _masked = false;
                   });
                 },
@@ -117,6 +170,7 @@ class _MyAppState extends State<MyApp> {
         primaryColor: Colors.blue,
         brightness: Brightness.dark,
         accentColor: Colors.black,
+        // backgroundColor: Colors.black38
       ),
       title: 'bokashe',
       home: Scaffold(
