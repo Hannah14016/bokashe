@@ -2,8 +2,7 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:bokashe/widgets/image_screen.dart';
-
+import './widgets/image_screen.dart';
 import './widgets/home_screen.dart';
 import './widgets/home_button.dart';
 import './widgets/camera_button.dart';
@@ -11,7 +10,6 @@ import 'package:flutter/material.dart';
 
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:http/http.dart' as http;
 import 'package:connectivity/connectivity.dart';
 
 void main() => runApp(MyApp());
